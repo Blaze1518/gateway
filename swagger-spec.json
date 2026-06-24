@@ -1,0 +1,1080 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/sites": {
+      "post": {
+        "operationId": "SitesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSiteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Tạo mới một trang web (Site)",
+        "tags": [
+          "Sites"
+        ]
+      },
+      "get": {
+        "operationId": "SitesController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SiteResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Lấy danh sách tất cả các trang web",
+        "tags": [
+          "Sites"
+        ]
+      }
+    },
+    "/sites/{id}": {
+      "get": {
+        "operationId": "SitesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID của trang web cần tìm",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Lấy chi tiết một trang web theo ID",
+        "tags": [
+          "Sites"
+        ]
+      },
+      "patch": {
+        "operationId": "SitesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID của trang web cần cập nhật",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSiteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Cập nhật thông tin trang web theo ID",
+        "tags": [
+          "Sites"
+        ]
+      },
+      "delete": {
+        "operationId": "SitesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID của trang web cần xóa",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Xóa một trang web theo ID",
+        "tags": [
+          "Sites"
+        ]
+      }
+    },
+    "/templates": {
+      "post": {
+        "operationId": "TemplatesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Tạo mới một kịch bản mẫu (Template)",
+        "tags": [
+          "Job Templates"
+        ]
+      },
+      "get": {
+        "operationId": "TemplatesController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Tìm kiếm theo tên hoặc slug kịch bản",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "taskType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "MOMO_PORTAL_CHECK",
+              "type": "string"
+            }
+          },
+          {
+            "name": "engine",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PLAYWRIGHT",
+                "AXIOS_HTTP"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedTemplateResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Lấy danh sách kịch bản phân trang & lọc nâng cao",
+        "tags": [
+          "Job Templates"
+        ]
+      }
+    },
+    "/templates/slug/{slug}": {
+      "get": {
+        "operationId": "TemplatesController_findBySlug",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": "momo-pay-da-tab-by-admin",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Lấy kịch bản theo chuỗi Slug URL (Phục vụ Frontend Next.js)",
+        "tags": [
+          "Job Templates"
+        ]
+      }
+    },
+    "/templates/{id}": {
+      "get": {
+        "operationId": "TemplatesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID của kịch bản mẫu trong MongoDB",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Lấy chi tiết kịch bản mẫu theo ID",
+        "tags": [
+          "Job Templates"
+        ]
+      },
+      "patch": {
+        "operationId": "TemplatesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Cập nhật kịch bản mẫu theo ID",
+        "tags": [
+          "Job Templates"
+        ]
+      },
+      "delete": {
+        "operationId": "TemplatesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Xóa kịch bản mẫu theo ID",
+        "tags": [
+          "Job Templates"
+        ]
+      }
+    },
+    "/tasks": {
+      "post": {
+        "operationId": "TasksController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTaskDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Khởi tạo đúc mới một con Bot cấu hình chạy ngầm",
+        "tags": [
+          "Automation Bots (Tasks)"
+        ]
+      },
+      "get": {
+        "operationId": "TasksController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Tìm kiếm bot theo tên gợi nhớ",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "targetSiteCode",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "taskType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lastExecutionStatus",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SUCCESS",
+                "FAILED",
+                "UNKNOWN"
+              ]
+            }
+          },
+          {
+            "name": "isActive",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedTaskResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Lấy danh sách Bot vận hành có phân trang & lọc nâng cao",
+        "tags": [
+          "Automation Bots (Tasks)"
+        ]
+      }
+    },
+    "/tasks/{id}/test": {
+      "post": {
+        "operationId": "TasksController_triggerTestRun",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "MongoDB ObjectId của con Bot cần chạy thử",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Đã đẩy vào hàng đợi ưu tiên cao"
+          }
+        },
+        "summary": "Bắn lệnh cào thử khẩn cấp lập tức, bỏ qua chu kỳ đóng băng",
+        "tags": [
+          "Automation Bots (Tasks)"
+        ]
+      }
+    },
+    "/tasks/{id}": {
+      "get": {
+        "operationId": "TasksController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "MongoDB ObjectId của con Bot",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Lấy trạng thái và cấu hình chi tiết của Bot theo ID",
+        "tags": [
+          "Automation Bots (Tasks)"
+        ]
+      },
+      "patch": {
+        "operationId": "TasksController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTaskDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Cập nhật tham số hoặc đổi trạng thái kích hoạt Bot",
+        "tags": [
+          "Automation Bots (Tasks)"
+        ]
+      },
+      "delete": {
+        "operationId": "TasksController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Hạ tải xóa bỏ vĩnh viễn con Bot khỏi luồng điều phối",
+        "tags": [
+          "Automation Bots (Tasks)"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "ATT-Automation",
+    "description": "Tài liệu API chi tiết cho dự án",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [
+    {
+      "url": "http://localhost:3010",
+      "description": "Local environment"
+    },
+    {
+      "url": "https://yourdomain.com",
+      "description": "Staging"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "JWT-auth": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "name": "JWT",
+        "description": "Nhập mã token vào đây",
+        "in": "header"
+      }
+    },
+    "schemas": {
+      "CreateSiteDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Kênh Tin Tức ABC",
+            "description": "Tiêu đề hoặc tên của trang web"
+          },
+          "description": {
+            "type": "string",
+            "example": "Trang web cập nhật tin tức công nghệ 24/7",
+            "description": "Mô tả ngắn gọn về trang web"
+          },
+          "linkPhoto": {
+            "type": "string",
+            "example": "https://example.com",
+            "description": "Đường dẫn liên kết hình ảnh của trang web"
+          },
+          "updatedBy": {
+            "type": "string",
+            "example": "64f1a2b3c4d5e6f7a8b9c0d1",
+            "description": "ID người dùng thực hiện cập nhật hệ thống (MongoDB ObjectId)"
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "SiteResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "64f1a2b3c4d5e6f7a8b9c0d1"
+          },
+          "title": {
+            "type": "string",
+            "example": "Kênh Tin Tức ABC"
+          }
+        },
+        "required": [
+          "id",
+          "title"
+        ]
+      },
+      "UpdateSiteDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "VariableDefinitionDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "example": "siteUrl"
+          },
+          "label": {
+            "type": "string",
+            "example": "Đường dẫn đài"
+          },
+          "type": {
+            "type": "string",
+            "example": "TEXT",
+            "enum": [
+              "TEXT",
+              "NUMBER",
+              "SELECT"
+            ]
+          },
+          "options": {
+            "example": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "placeholder": {
+            "type": "string",
+            "example": "Nhập URL..."
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "type",
+          "options",
+          "placeholder"
+        ]
+      },
+      "WorkflowStepDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "1"
+          },
+          "action": {
+            "type": "string",
+            "example": "GOTO"
+          },
+          "description": {
+            "type": "string",
+            "example": "Truy cập trang chủ"
+          }
+        },
+        "required": [
+          "id",
+          "action",
+          "description"
+        ]
+      },
+      "CreateTemplateDto": {
+        "type": "object",
+        "properties": {
+          "taskType": {
+            "type": "string",
+            "example": "MOMO_PORTAL_CHECK"
+          },
+          "slug": {
+            "type": "string",
+            "example": "momo-da-tab-by-dev-alpha"
+          },
+          "name": {
+            "type": "string",
+            "example": "Mẫu kiểm tra cổng nạp Đa Tab"
+          },
+          "imageUrl": {
+            "type": "string",
+            "example": "https://media.licdn.com/..."
+          },
+          "engine": {
+            "type": "string",
+            "example": "PLAYWRIGHT",
+            "enum": [
+              "PLAYWRIGHT",
+              "AXIOS_HTTP"
+            ]
+          },
+          "variableDefinitions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VariableDefinitionDto"
+            }
+          },
+          "baseWorkflow": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowStepDto"
+            }
+          },
+          "authorId": {
+            "type": "string",
+            "example": "64f1a2b3c4d5e6f7a8b9c0d1"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "taskType",
+          "slug",
+          "name",
+          "engine",
+          "variableDefinitions",
+          "baseWorkflow",
+          "authorId"
+        ]
+      },
+      "TemplateResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "64f1a2b3c4d5e6f7a8b9c0d2"
+          },
+          "taskType": {
+            "type": "string",
+            "example": "MOMO_PORTAL_CHECK"
+          },
+          "slug": {
+            "type": "string",
+            "example": "momo-da-tab-by-dev-alpha"
+          },
+          "name": {
+            "type": "string",
+            "example": "Mẫu kiểm tra cổng nạp Đa Tab"
+          },
+          "engine": {
+            "type": "string",
+            "example": "PLAYWRIGHT"
+          },
+          "version": {
+            "type": "number",
+            "example": 1,
+            "description": "Phiên bản hiện tại của kịch bản gốc"
+          },
+          "authorId": {
+            "type": "string",
+            "example": "64f1a2b3c4d5e6f7a8b9c0d1"
+          }
+        },
+        "required": [
+          "id",
+          "taskType",
+          "slug",
+          "name",
+          "engine",
+          "version",
+          "authorId"
+        ]
+      },
+      "PaginatedTemplateResponseDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateTemplateDto": {
+        "type": "object",
+        "properties": {
+          "taskType": {
+            "type": "string",
+            "example": "MOMO_PORTAL_CHECK"
+          },
+          "slug": {
+            "type": "string",
+            "example": "momo-da-tab-by-dev-alpha"
+          },
+          "name": {
+            "type": "string",
+            "example": "Mẫu kiểm tra cổng nạp Đa Tab nâng cấp"
+          },
+          "imageUrl": {
+            "type": "string",
+            "example": "https://media.licdn.com/..."
+          },
+          "engine": {
+            "type": "string",
+            "example": "PLAYWRIGHT",
+            "enum": [
+              "PLAYWRIGHT",
+              "AXIOS_HTTP"
+            ]
+          },
+          "variableDefinitions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "baseWorkflow": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "updatedBy": {
+            "type": "string",
+            "example": "64f1a2b3c4d5e6f7a8b9c0d1",
+            "description": "ID người thực hiện sửa đổi kịch bản"
+          }
+        }
+      },
+      "CreateTaskDto": {
+        "type": "object",
+        "properties": {
+          "jobName": {
+            "type": "string",
+            "example": "Bot tự động check cổng đài F8BET nhóm Momo 33"
+          },
+          "templateId": {
+            "type": "string",
+            "example": "64f1a2b3c4d5e6f7a8b9c0d2"
+          },
+          "templateSlug": {
+            "type": "string",
+            "example": "momo-pay-da-tab-by-admin"
+          },
+          "taskType": {
+            "type": "string",
+            "example": "MOMO_PORTAL_CHECK"
+          },
+          "templateVersion": {
+            "type": "number",
+            "example": 1
+          },
+          "engine": {
+            "type": "string",
+            "example": "PLAYWRIGHT",
+            "enum": [
+              "PLAYWRIGHT",
+              "AXIOS_HTTP"
+            ]
+          },
+          "targetSiteCode": {
+            "type": "string",
+            "example": "F8BET"
+          },
+          "cronExpression": {
+            "type": "string",
+            "example": "*/3 * * * *"
+          },
+          "variableValues": {
+            "type": "object",
+            "example": {
+              "siteUrl": "https://f8bet.com",
+              "amountValue": 50
+            }
+          },
+          "compiledWorkflow": {
+            "example": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "jobName",
+          "templateId",
+          "templateSlug",
+          "taskType",
+          "templateVersion",
+          "engine",
+          "targetSiteCode",
+          "cronExpression",
+          "variableValues",
+          "compiledWorkflow"
+        ]
+      },
+      "TaskResponseDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "PaginatedTaskResponseDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateTaskDto": {
+        "type": "object",
+        "properties": {
+          "jobName": {
+            "type": "string",
+            "example": "Bot tự động check cổng đài F8BET nhóm Momo 33"
+          },
+          "templateId": {
+            "type": "string",
+            "example": "64f1a2b3c4d5e6f7a8b9c0d2"
+          },
+          "templateSlug": {
+            "type": "string",
+            "example": "momo-pay-da-tab-by-admin"
+          },
+          "taskType": {
+            "type": "string",
+            "example": "MOMO_PORTAL_CHECK"
+          },
+          "templateVersion": {
+            "type": "number",
+            "example": 1
+          },
+          "engine": {
+            "type": "string",
+            "example": "PLAYWRIGHT",
+            "enum": [
+              "PLAYWRIGHT",
+              "AXIOS_HTTP"
+            ]
+          },
+          "targetSiteCode": {
+            "type": "string",
+            "example": "F8BET"
+          },
+          "cronExpression": {
+            "type": "string",
+            "example": "*/3 * * * *"
+          },
+          "variableValues": {
+            "type": "object",
+            "example": {
+              "siteUrl": "https://f8bet.com",
+              "amountValue": 50
+            }
+          },
+          "compiledWorkflow": {
+            "example": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}
