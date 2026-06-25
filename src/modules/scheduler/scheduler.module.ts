@@ -1,14 +1,17 @@
-// src/modules/scheduler/scheduler.module.ts
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
-import { SchedulerService } from '../scheduler/scheduler.service';
-import { AutomationModule } from '../automation/automation.module';
+import { SchedulerService } from './scheduler.service';
 
 @Module({
   imports: [
-    BullModule.registerQueue({
-      name: 'portal-checks',
-    }),
+    BullModule.registerQueue(
+      {
+        name: 'portal-checks',
+      },
+      {
+        name: 'account-maintenance',
+      },
+    ),
   ],
   providers: [SchedulerService],
   exports: [SchedulerService],

@@ -58,7 +58,7 @@ export class TemplatesService {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
-        .populate('authorId', 'name email')
+        // .populate('authorId', 'name email')
         .lean()
         .exec(),
       this.templateModel.countDocuments(filterOptions).exec(),

@@ -782,6 +782,22 @@
           "description": {
             "type": "string",
             "example": "Truy cập trang chủ"
+          },
+          "url": {
+            "type": "string",
+            "example": "https://f8betbbe.com/"
+          },
+          "selector": {
+            "type": "string",
+            "example": "role=button[name=\"Đăng nhập\"]"
+          },
+          "value": {
+            "type": "string",
+            "example": "1500"
+          },
+          "timeout": {
+            "type": "number",
+            "example": 20000
           }
         },
         "required": [

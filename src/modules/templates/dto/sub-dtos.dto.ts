@@ -52,4 +52,25 @@ export class WorkflowStepDto {
   @IsString()
   @IsOptional()
   description?: string;
+
+  @ApiProperty({ example: 'https://f8betbbe.com/', required: false })
+  @IsString()
+  @IsOptional()
+  url?: string;
+
+  @ApiProperty({ example: 'role=button[name="Đăng nhập"]', required: false })
+  @IsString()
+  @IsOptional()
+  selector?: string;
+
+  @ApiProperty({ example: '1500', required: false })
+  @IsString()
+  @IsOptional()
+  value?: string;
+
+  @ApiProperty({ example: 20000, required: false })
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  timeout?: number;
 }

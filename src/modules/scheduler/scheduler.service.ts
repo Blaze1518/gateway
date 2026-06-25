@@ -1,3 +1,4 @@
+// src/modules/scheduler/scheduler.service.ts
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
@@ -9,17 +10,28 @@ export class SchedulerService {
 
   constructor(
     @InjectQueue('portal-checks') private readonly portalQueue: Queue,
+    @InjectQueue('account-maintenance')
+    private readonly maintenanceQueue: Queue,
   ) {}
+
+  private getQueueByTaskType(taskType: string): Queue {
+    if (taskType === 'ACCOUNT_MAINTENANCE') {
+      return this.maintenanceQueue;
+    }
+    return this.portalQueue;
+  }
 
   async registerTask(task: TaskDocument | any) {
     const taskIdStr = task._id.toString();
     const repeatableJobId = `repeat_${taskIdStr}`;
 
+    const targetQueue = this.getQueueByTaskType(task.taskType);
+
     this.logger.log(
-      `🔔 [Register] Đang nạp cấu hình chu kỳ cho Bot: [${task.jobName}] - Chu kỳ: [${task.cronExpression}]`,
+      `🔔 [Register] Bot: [${task.jobName}] | Loại: [${task.taskType}] ➔ Tuyến Queue: [${targetQueue.name}] | Chu kỳ: [${task.cronExpression}]`,
     );
 
-    await this.portalQueue.add(
+    await targetQueue.add(
       'run-check',
       {
         taskId: taskIdStr,
@@ -40,14 +52,15 @@ export class SchedulerService {
     );
 
     this.logger.log(
-      `✅ [Success] Bot [${task.jobName}] đã được đưa vào lịch trình tự động của Redis.`,
+      `✅ [Success] Bot [${task.jobName}] đã găm lịch trình thành công vào Queue [${targetQueue.name}].`,
     );
   }
 
   async unregisterTask(task: TaskDocument | any) {
     const taskIdStr = task._id.toString();
 
-    const schedulers = await this.portalQueue.getJobSchedulers();
+    const targetQueue = this.getQueueByTaskType(task.taskType);
+    const schedulers = await targetQueue.getJobSchedulers();
 
     const targetScheduler = schedulers.find(
       (scheduler) =>
@@ -56,14 +69,13 @@ export class SchedulerService {
     );
 
     if (targetScheduler && targetScheduler.id) {
-      await this.portalQueue.removeJobScheduler(targetScheduler.id);
-
+      await targetQueue.removeJobScheduler(targetScheduler.id);
       this.logger.log(
-        `🚨 [Unregistered] Đã tháo ngòi chu kỳ, dừng hoạt động của Bot: [${task.jobName}]`,
+        `🚨 [Unregistered] Đã gỡ chu kỳ thành công Bot: [${task.jobName}] khỏi Queue [${targetQueue.name}]`,
       );
     } else {
       this.logger.warn(
-        `⚠️ Không tìm thấy lịch trình của Bot [${task.jobName}] trên Redis để huỷ.`,
+        `⚠️ Không tìm thấy lịch trình của Bot [${task.jobName}] trên tuyến Queue [${targetQueue.name}] để huỷ.`,
       );
     }
   }
@@ -71,7 +83,13 @@ export class SchedulerService {
   async triggerImmediateTestRun(task: TaskDocument | any) {
     const instantJobId = `test_${task._id.toString()}_${Date.now()}`;
 
-    await this.portalQueue.add(
+    const targetQueue = this.getQueueByTaskType(task.taskType);
+
+    this.logger.log(
+      `🚀 [Immediate Trigger] Đang bắn 1 Job hỏa tốc cho Bot [${task.jobName}] vào Queue [${targetQueue.name}]`,
+    );
+
+    await targetQueue.add(
       'run-check',
       {
         jobId: instantJobId,
@@ -88,10 +106,6 @@ export class SchedulerService {
         removeOnComplete: true,
         removeOnFail: false,
       },
-    );
-
-    this.logger.log(
-      `🚀 [Test Run] Đã phát hỏa lệnh cào thử khẩn cấp cho Bot: [${task.jobName}]`,
     );
   }
 }

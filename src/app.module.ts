@@ -8,13 +8,14 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AppService } from './app.service';
 import { RedisModule } from './common/redis/redis.module';
 import { AutomationModule } from './modules/automation/automation.module';
-import { AuthKeeperModule } from './modules/auth-keeper/auth-keeper.module';
 import { SchedulerModule } from './modules/scheduler/scheduler.module';
 import { SitesModule } from './modules/sites/sites.module';
 import { TemplatesModule } from './modules/templates/templates.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { ResultModule } from './modules/result/result.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { ResourceModule } from './modules/resource/resource.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -43,13 +44,13 @@ import { NotificationModule } from './modules/notification/notification.module';
 
     RedisModule,
     AutomationModule,
-    AuthKeeperModule,
     SchedulerModule,
     SitesModule,
     TemplatesModule,
     TasksModule,
     ResultModule,
     NotificationModule,
+    ResourceModule,
   ],
   controllers: [AppController],
   providers: [AppService],

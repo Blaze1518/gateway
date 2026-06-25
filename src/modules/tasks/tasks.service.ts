@@ -6,12 +6,14 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { QueryTaskDto } from './dto/query-task.dto';
 import { SchedulerService } from '../scheduler/scheduler.service';
+import { ResourceKeeperRegistry } from '../resource/resource-keeper-registry.service';
 
 @Injectable()
 export class TasksService {
   constructor(
     @InjectModel(Task.name) private readonly taskModel: Model<TaskDocument>,
     private readonly schedulerService: SchedulerService,
+    private readonly resourceRegistry: ResourceKeeperRegistry,
   ) {}
 
   async create(createTaskDto: CreateTaskDto): Promise<TaskDocument> {
@@ -20,6 +22,7 @@ export class TasksService {
 
     if (savedTask.isActive) {
       await this.schedulerService.registerTask(savedTask);
+      await this.resourceRegistry.incrementRef(savedTask.targetSiteCode);
     }
 
     return savedTask;
@@ -98,10 +101,14 @@ export class TasksService {
       .lean()
       .exec();
 
-    await this.schedulerService.unregisterTask(oldTask);
+    if (oldTask.isActive) {
+      await this.schedulerService.unregisterTask(oldTask);
+      await this.resourceRegistry.decrementRef(oldTask.targetSiteCode);
+    }
 
     if (updatedTask?.isActive) {
       await this.schedulerService.registerTask(updatedTask);
+      await this.resourceRegistry.incrementRef(updatedTask.targetSiteCode);
     }
 
     return updatedTask;
@@ -115,7 +122,10 @@ export class TasksService {
       );
     }
 
-    await this.schedulerService.unregisterTask(task);
+    if (task.isActive) {
+      await this.schedulerService.unregisterTask(task);
+      await this.resourceRegistry.decrementRef(task.targetSiteCode);
+    }
 
     await this.taskModel.findByIdAndDelete(id).exec();
     return { id, message: 'Hạ tải và xóa vết cấu hình Bot thành công' };
