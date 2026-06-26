@@ -46,18 +46,15 @@ export class ResultProcessor extends WorkerHost {
       const evaluation = await this.resultService.evaluateResult(payload);
 
       if (evaluation.hasChanged) {
-        // Cổng thực sự đổi màu trạng thái
         this.logger.warn(
           `🚨 [Hậu Kỳ Biến Động] Cổng đổi màu [${evaluation.oldStatus} ➔ ${evaluation.newStatus}]. Đẩy sang luồng thông báo hỏa tốc.`,
         );
       } else {
-        // Nhịp tim ổn định tuần hoàn
         this.logger.log(
           `💤 [Hậu Kỳ Ổn Định] Cổng giữ nguyên nhịp tim [${evaluation.newStatus}]. Chuyển dữ liệu nuôi xô RAM gom tụ 5 phút.`,
         );
       }
 
-      // Phát phát tín hiệu chuyển giao trách nhiệm sang tháp chỉ huy Notification
       await this.notificationQueue.add(
         'dispatch-alert',
         {

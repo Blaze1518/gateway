@@ -54,9 +54,6 @@ export class TelegramService {
     }
   }
 
-  /**
-   * 🚨 BIẾN ĐỘNG LẬP TỨC: Hiển thị hỏa tốc bước nhảy trạng thái
-   */
   renderSingleAlert(evt: any): string {
     const oldStatus = evt.oldStatus || evt.data?.oldStatus || 'UNKNOWN';
     const newStatus = evt.newStatus || evt.data?.newStatus || 'UNKNOWN';
@@ -77,16 +74,12 @@ export class TelegramService {
     return text;
   }
 
-  /**
-   * ⚠️ BÁO CÁO ĐỊNH KỲ 5 PHÚT: Gom tụ tối ưu, nhóm liên tục theo Phương thức nạp (Group by Category)
-   */
   renderAggregatedAlert(clusterKey: string, events: any[]): string {
     let text = `📊 *[BÁO CÁO SỨC KHỎE ĐỊNH KỲ 5 PHÚT]*\n\n`;
     text += `📡 *Đài mục tiêu:* \`${clusterKey}\`\n`;
     text += `📦 *Tổng số lượt kiểm tra:* \`${events.length} ca trực\`\n`;
     text += `------------------------------------\n`;
 
-    // 🧠 CẤU TRÚC RAM PHÂN TÁC: Map<tabName, Map<portalText, { status: string, count: number }>>
     const categories = new Map<
       string,
       Map<string, { status: string; count: number }>
@@ -97,32 +90,28 @@ export class TelegramService {
       const tabName = evt.variableValues?.tabName || 'Giao dịch';
       const newStatus = evt.newStatus || evt.data?.newStatus || 'ALIVE';
 
-      // 1. Nếu chưa có Phương thức này (Momo, Thẻ cào...) -> Khởi tạo khay chứa riêng
+      const count = evt.checkCount !== undefined ? evt.checkCount : 1;
+
       if (!categories.has(tabName)) {
         categories.set(tabName, new Map());
       }
 
-      // 2. Chui vào khay của Phương thức đó để găm tên Cổng nạp
       const gatesMap = categories.get(tabName)!;
       if (!gatesMap.has(portalText)) {
-        gatesMap.set(portalText, { status: newStatus, count: 1 });
+        gatesMap.set(portalText, { status: newStatus, count: count });
       } else {
         const exist = gatesMap.get(portalText)!;
-        exist.count += 1;
-        exist.status = newStatus; // Ép trạng thái mốc cuối chu kỳ
+        exist.count += count;
+        exist.status = newStatus;
       }
     });
 
-    // =========================================================================
-    // 🎨 THIẾT KẾ ĐỒNG BỘ: Duyệt xuất dữ liệu theo khối Phương thức liên tục
-    // =========================================================================
     categories.forEach((gatesMap, tabName) => {
       text += `\n💳 *Phương thức: [${tabName.toUpperCase()}]*\n`;
 
       gatesMap.forEach((info, portalText) => {
         const icon = info.status === 'ALIVE' ? '🟢 ỔN ĐỊNH ' : '🔴 TREO CỔNG';
 
-        // Sử dụng ký tự đặc biệt và bọc backtick vào Tên Cổng để ép font Monospace thẳng hàng trên Telegram
         text += `  🔹 \`${portalText.padEnd(12, ' ')}\` ➔  ${icon} (Check ${info.count} lần)\n`;
       });
     });

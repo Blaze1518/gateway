@@ -48,9 +48,28 @@ export class ResultService {
     const rawOldStatus = await this.redisService
       .getClient()
       .hget(redisKey, field);
-    const oldStatus = rawOldStatus || 'UNKNOWN';
 
-    await this.redisService.getClient().hset(redisKey, field, newStatus);
+    let oldStatus = 'UNKNOWN';
+    if (rawOldStatus) {
+      try {
+        const parsed = JSON.parse(rawOldStatus);
+        oldStatus = parsed.status || 'UNKNOWN';
+      } catch {
+        oldStatus = rawOldStatus;
+      }
+    }
+
+    const portalState = {
+      status: newStatus,
+      tabName: payload.variableValues?.tabName || 'Giao dịch',
+      portalText: payload.variableValues?.portalText || 'Cổng Ẩn',
+      reasonCode: payload.result.reasonCode,
+      timestamp: Date.now(),
+    };
+
+    await this.redisService
+      .getClient()
+      .hset(redisKey, field, JSON.stringify(portalState));
 
     const hasChanged = oldStatus !== newStatus;
 
