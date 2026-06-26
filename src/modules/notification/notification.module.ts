@@ -4,6 +4,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { NotificationProcessor } from './processors/notification.processor';
 import { NotificationBufferProcessor } from './processors/notification-buffer.processor';
 import { TelegramService } from './telegram.service';
+import { RedisModule } from '../../common/redis/redis.module';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { TelegramService } from './telegram.service';
       { name: 'notification-events' },
       { name: 'notification-aggregation-queue' },
     ),
+    RedisModule,
   ],
   providers: [
     NotificationProcessor,
