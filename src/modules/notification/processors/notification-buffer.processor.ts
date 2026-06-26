@@ -23,10 +23,8 @@ export class NotificationBufferProcessor extends WorkerHost {
 
     const redisClient = this.redisService.getClient();
 
-    // 🌟 RÚT SẠCH NGUYÊN KHỐI: Rút toàn bộ đống nhịp tim tích lũy trong 5 phút ra khỏi Redis List
     const rawEvents = await redisClient.lrange(bufferKey, 0, -1);
 
-    // TẬP LỆNH GIẢI PHÓNG RAM TRÊN PRODUCTION: Xóa sạch xô chứa và dỡ khóa Timer lập tức
     await redisClient.del(bufferKey);
     await redisClient.del(lockKey);
 
@@ -36,7 +34,6 @@ export class NotificationBufferProcessor extends WorkerHost {
 
     const events = rawEvents.map((item) => JSON.parse(item));
 
-    // Gom nhóm và định dạng tin nhắn sang phom Markdown sạch
     const text = this.telegramService.renderAggregatedAlert(clusterKey, events);
     await this.telegramService.sendMessage(text);
 

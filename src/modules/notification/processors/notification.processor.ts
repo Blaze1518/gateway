@@ -13,7 +13,7 @@ export class NotificationProcessor extends WorkerHost {
     private readonly redisService: RedisService,
     private readonly telegramService: TelegramService,
     @InjectQueue('notification-aggregation-queue')
-    private readonly aggQueue: Queue, // 🎯 Tiêu điểm kiểm tra xem có bị gãy Dependency không
+    private readonly aggQueue: Queue,
   ) {
     super();
   }
@@ -39,7 +39,7 @@ export class NotificationProcessor extends WorkerHost {
       return { strategy: 'IMMEDIATE_TELE', taskId: event.taskId };
     }
 
-    const windowSeconds = 300;
+    const windowSeconds = 120;
     const bufferKey = `notify:buffer:${clusterKey}`;
     const lockKey = `notify:lock:${clusterKey}`;
 
