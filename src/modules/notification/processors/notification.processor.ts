@@ -11,7 +11,7 @@ export class NotificationProcessor extends WorkerHost {
 
   constructor(
     private readonly redisService: RedisService,
-    private readonly telegramService: TelegramService, // 🌟 Tiêm trực tiếp Telegram không qua trung gian
+    private readonly telegramService: TelegramService,
     @InjectQueue('notification-aggregation-queue')
     private readonly aggQueue: Queue,
   ) {
@@ -22,59 +22,77 @@ export class NotificationProcessor extends WorkerHost {
     const event = job.data;
     const clusterKey = event.targetSiteCode;
 
-    this.logger.log(
-      `📡 Event dữ liệu nhận được:\n${JSON.stringify(event, null, 2)}`,
-    );
-    // 🧠 Tra cứu luật trễ động theo Template Slug
-    const windowSeconds = this.resolveWindowSeconds(event.templateSlug);
+    // =========================================================================
+    // 🛡️ LÁ CHẮN TRÍCH XUẤT: Bọc lót lấy trạng thái bất kể JSON phẳng hay lồng khay data
+    // =========================================================================
+    const oldStatus = event.oldStatus || event.data?.oldStatus || 'UNKNOWN';
+    const newStatus = event.newStatus || event.data?.newStatus || 'UNKNOWN';
 
-    // 🚀 LUỒNG 1: KHẨN CẤP (windowSeconds = 0) -> Bắn thẳng Telegram lập tức
-    if (windowSeconds === 0) {
-      this.logger.log(
-        `⚡ [Immediate Tele] Báo động KHẨN CẤP (0s delay). Gọi Telegram Service gửi ngay...`,
+    // Đồng bộ ngược lại vào event để tầng Telegram Service bốc dữ liệu đồng nhất
+    if (!event.oldStatus) event.oldStatus = oldStatus;
+    if (!event.newStatus) event.newStatus = newStatus;
+
+    // 🎯 ĐIỀU KIỆN CHÍ MẠNG: So khớp đổi màu trạng thái thực tế
+    const isStateChanged = oldStatus !== newStatus;
+
+    // =========================================================================
+    // 🚀 LUỒNG 1: BIẾN ĐỘNG TRẠNG THÁI -> Bắn hỏa tốc Telegram ngay lập tức (0s delay)
+    // =========================================================================
+    if (isStateChanged) {
+      this.logger.warn(
+        `🚨 [Alert State Changed] Phát hiện biến động trạng thái [${oldStatus} ➔ ${newStatus}] tại đài [${clusterKey}]. Khai hỏa Telegram!`,
       );
 
       const text = this.telegramService.renderSingleAlert(event);
       await this.telegramService.sendMessage(text);
 
-      return { strategy: 'IMMEDIATE_TELE', taskId: event.taskId };
+      return {
+        strategy: 'IMMEDIATE_TELE',
+        taskId: event.taskId,
+        trigger: `${oldStatus}->${newStatus}`,
+      };
     }
 
-    // ⏳ LUỒNG 2: GOM TỤ GIẢM TẢI (windowSeconds > 0) -> Xếp hàng vào rổ RAM
+    // =========================================================================
+    // ⏳ LUỒNG 2: NHỊP TIM ỔN ĐỊNH -> Gom tụ giảm tải rải muối thời gian 5 phút
+    // =========================================================================
+    const windowSeconds = 60; // 5 phút gom đạn 1 lần (300 giây)
     const bufferKey = `notify:buffer:${clusterKey}`;
     const lockKey = `notify:lock:${clusterKey}`;
 
-    await this.redisService.getClient().rpush(bufferKey, JSON.stringify(event));
+    const redisClient = this.redisService.getClient();
 
-    const isClockRunning = await this.redisService.getClient().get(lockKey);
+    // Rpush cục nhịp tim ổn định này vào hàng sau của Redis List buffer
+    await redisClient.rpush(bufferKey, JSON.stringify(event));
+
+    // Thăm dò xem chiếc đồng hồ đếm ngược 5 phút cho đài này đã bật chưa
+    const isClockRunning = await redisClient.get(lockKey);
+
     if (!isClockRunning) {
-      await this.redisService
-        .getClient()
-        .set(lockKey, 'RUNNING', 'EX', windowSeconds + 5);
+      this.logger.log(
+        `⏰ [Timer Init] Kích hoạt đồng hồ cát 5 phút cho đài [${clusterKey}]. Bắt đầu gom tụ nhịp tim ổn định...`,
+      );
 
+      // Cắm cờ khóa timer sống trong 5 phút + 5s bù trừ trễ mạng chống trùng luồng
+      await redisClient.set(lockKey, 'RUNNING', 'EX', windowSeconds + 5);
+
+      // Đẩy duy nhất 1 con Job Delayed hẹn giờ 5 phút sau thức giấc thu hoạch rổ RAM
       await this.aggQueue.add(
         'flush-buffer',
         { clusterKey },
         {
-          delay: windowSeconds * 1000,
-          jobId: `timer:${clusterKey}`,
+          delay: windowSeconds * 1000, // Đổi sang ms cho BullMQ (300,000ms)
+          jobId: `timer:${clusterKey}`, // Khóa cứng ID theo đài để triệt tiêu việc đẻ trùng Timer rác
           removeOnComplete: true,
           removeOnFail: true,
         },
       );
     }
 
-    return { strategy: 'BUFFERED_TELE', clusterKey };
-  }
-
-  private resolveWindowSeconds(templateSlug: string): number {
-    // Nếu check cổng thường thì gom 15s chống spam, kịch bản khác mặc định nã ngay (0s)
-    if (
-      templateSlug === 'momo-pay-da-tab-by-admin' ||
-      templateSlug.includes('portal-check')
-    ) {
-      return 0;
-    }
-    return 0;
+    return {
+      strategy: 'BUFFERED_TELE',
+      clusterKey,
+      info: 'Stable status, waiting for flush',
+    };
   }
 }

@@ -11,7 +11,7 @@ export class NotificationBufferProcessor extends WorkerHost {
 
   constructor(
     private readonly redisService: RedisService,
-    private readonly telegramService: TelegramService, // 🌟 Gọi thẳng ông thần Telegram
+    private readonly telegramService: TelegramService,
   ) {
     super();
   }
@@ -21,21 +21,27 @@ export class NotificationBufferProcessor extends WorkerHost {
     const bufferKey = `notify:buffer:${clusterKey}`;
     const lockKey = `notify:lock:${clusterKey}`;
 
-    const rawEvents = await this.redisService
-      .getClient()
-      .lrange(bufferKey, 0, -1);
-    await this.redisService.getClient().del(bufferKey);
-    await this.redisService.getClient().del(lockKey);
+    const redisClient = this.redisService.getClient();
 
-    if (!rawEvents || rawEvents.length === 0) return { empty: true };
+    // 🌟 RÚT SẠCH NGUYÊN KHỐI: Rút toàn bộ đống nhịp tim tích lũy trong 5 phút ra khỏi Redis List
+    const rawEvents = await redisClient.lrange(bufferKey, 0, -1);
+
+    // TẬP LỆNH GIẢI PHÓNG RAM TRÊN PRODUCTION: Xóa sạch xô chứa và dỡ khóa Timer lập tức
+    await redisClient.del(bufferKey);
+    await redisClient.del(lockKey);
+
+    if (!rawEvents || rawEvents.length === 0) {
+      return { empty: true, message: 'Buffer was empty at flush time' };
+    }
+
     const events = rawEvents.map((item) => JSON.parse(item));
 
-    // Ủy thác việc gom nhóm dịch chữ và format Markdown cho Telegram Service tự lo
+    // Gom nhóm và định dạng tin nhắn sang phom Markdown sạch
     const text = this.telegramService.renderAggregatedAlert(clusterKey, events);
     await this.telegramService.sendMessage(text);
 
     this.logger.log(
-      `🚀 [Buffer Tele] Đã bắn thành công bản tin gom tụ ${events.length} sự kiện cho đài [${clusterKey}].`,
+      `🚀 [Buffer Tele] Đã bắn thành công bản tin gom tụ tổng hợp ${events.length} sự kiện nhịp tim cho cụm đài [${clusterKey}].`,
     );
     return { status: 'FLUSHED_TELE', count: events.length };
   }

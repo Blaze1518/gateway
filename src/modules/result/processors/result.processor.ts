@@ -28,61 +28,57 @@ export class ResultProcessor extends WorkerHost {
     );
 
     try {
-      // =========================================================================
-      // 🏁 BƯỚC 1: SNAPSHOT MONGODB (BẤT BIẾN)
-      // =========================================================================
       const statusForDb =
         payload.result.status === 'ALIVE' ? 'SUCCESS' : 'FAILED';
       await this.taskModel
-        .findByIdAndUpdate(payload.taskId, {
-          lastExecutedAt: new Date(),
-          lastExecutionStatus: statusForDb,
-          lastExecutionError:
-            payload.result.status === 'DEAD' ? payload.result.rawLog : null,
-        })
+        .findByIdAndUpdate(
+          payload.taskId,
+          {
+            lastExecutedAt: new Date(),
+            lastExecutionStatus: statusForDb,
+            lastExecutionError:
+              payload.result.status === 'DEAD' ? payload.result.rawLog : null,
+          },
+          { returnDocument: 'after' },
+        )
         .exec();
 
-      // =========================================================================
-      // ⚙️ BƯỚC 2: ỦY THÁC HOÀN TOÀN CHO SERVICE PHÂN TÍCH (LỎNG LẺO TUYỆT ĐỐI)
-      // =========================================================================
       const evaluation = await this.resultService.evaluateResult(payload);
 
-      // =========================================================================
-      // 🚀 BƯỚC 3: PHÁT EVENT NGHIỆP VỤ SẠCH SANG MODULE NOTIFICATION
-      // =========================================================================
-      // Chỉ kích nổ luồng thông báo nếu có biến động đổi màu THỰC SỰ hoặc đó là một lượt chạy thử
-      // if (evaluation.hasChanged || payload.isTestRun) {
-      if (true) {
-        this.logger.log(
-          `🔔 [Alert Triggered] Phát hiện đổi màu trạng thái (${evaluation.oldStatus} ➔ ${evaluation.newStatus}). Bắn lệnh sang Module Notification...`,
-        );
-
-        await this.notificationQueue.add(
-          'dispatch-alert',
-          {
-            eventId: `evt_${Date.now()}_${payload.taskId}`,
-            taskId: payload.taskId,
-            engineType: payload.engineType,
-            templateSlug: payload.templateSlug,
-            targetSiteCode: payload.targetSiteCode,
-            variableValues: payload.variableValues,
-            executionTimeMs: payload.executionTimeMs,
-            isTestRun: payload.isTestRun,
-            timestamp: Date.now(),
-            data: {
-              oldStatus: evaluation.oldStatus,
-              newStatus: evaluation.newStatus,
-              reasonCode: evaluation.reasonCode,
-              rawLog: payload.result.rawLog,
-            },
-          },
-          { removeOnComplete: true, removeOnFail: true },
+      if (evaluation.hasChanged) {
+        // Cổng thực sự đổi màu trạng thái
+        this.logger.warn(
+          `🚨 [Hậu Kỳ Biến Động] Cổng đổi màu [${evaluation.oldStatus} ➔ ${evaluation.newStatus}]. Đẩy sang luồng thông báo hỏa tốc.`,
         );
       } else {
+        // Nhịp tim ổn định tuần hoàn
         this.logger.log(
-          `💤 [System Stable] Trạng thái cổng nạp không đổi (${evaluation.newStatus}). Hệ thống im lặng cản nhiễu.`,
+          `💤 [Hậu Kỳ Ổn Định] Cổng giữ nguyên nhịp tim [${evaluation.newStatus}]. Chuyển dữ liệu nuôi xô RAM gom tụ 5 phút.`,
         );
       }
+
+      // Phát phát tín hiệu chuyển giao trách nhiệm sang tháp chỉ huy Notification
+      await this.notificationQueue.add(
+        'dispatch-alert',
+        {
+          eventId: `evt_${Date.now()}_${payload.taskId}`,
+          taskId: payload.taskId,
+          engineType: payload.engineType,
+          templateSlug: payload.templateSlug,
+          targetSiteCode: payload.targetSiteCode,
+          variableValues: payload.variableValues,
+          executionTimeMs: payload.executionTimeMs,
+          isTestRun: payload.isTestRun,
+          timestamp: Date.now(),
+          data: {
+            oldStatus: evaluation.oldStatus,
+            newStatus: evaluation.newStatus,
+            reasonCode: evaluation.reasonCode,
+            rawLog: payload.result.rawLog,
+          },
+        },
+        { removeOnComplete: true, removeOnFail: true },
+      );
 
       return { success: true, taskId: payload.taskId };
     } catch (error) {

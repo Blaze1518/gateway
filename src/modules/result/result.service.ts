@@ -22,13 +22,6 @@ export class ResultService {
       `🔍 [Evaluation Engine] Đang bốc chiến lược xử lý cho kịch bản: [${slug}]`,
     );
 
-    // =========================================================================
-    // 🚀 FUTURE TODO: Sau này bác làm cấu hình đọc luật từ JSON thì nhét ở đây:
-    // const jsonRule = await this.ruleModel.findOne({ templateSlug: slug });
-    // if (jsonRule) { return this.executeJsonRuleEngine(payload, jsonRule); }
-    // =========================================================================
-
-    // HIỆN TẠI: Chạy mượt mà các kịch bản check cổng nạp đang chạy ngầm
     if (slug === 'momo-pay-da-tab-by-admin' || slug.includes('portal-check')) {
       return await this.evaluateMomoPortalCheck(payload);
     }
@@ -52,15 +45,18 @@ export class ResultService {
     const field = payload.taskId;
     const newStatus = payload.result.status;
 
-    const oldStatus = await this.redisService.getClient().hget(redisKey, field);
+    const rawOldStatus = await this.redisService
+      .getClient()
+      .hget(redisKey, field);
+    const oldStatus = rawOldStatus || 'UNKNOWN';
 
     await this.redisService.getClient().hset(redisKey, field, newStatus);
 
-    const hasChanged = oldStatus !== null && oldStatus !== newStatus;
+    const hasChanged = oldStatus !== newStatus;
 
     return {
       hasChanged,
-      oldStatus: oldStatus || 'UNKNOWN',
+      oldStatus,
       newStatus,
       reasonCode: payload.result.reasonCode,
     };
