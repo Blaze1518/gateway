@@ -75,7 +75,7 @@ export class TelegramService {
   }
 
   renderAggregatedAlert(clusterKey: string, events: any[]): string {
-    let text = `📊 *[BÁO CÁO SỨC KHỎE ĐỊNH KỲ 5 PHÚT]*\n\n`;
+    let text = `📊 *[BÁO CÁO SỨC KHỎE ĐỊNH KỲ]*\n\n`;
     text += `📡 *Đài mục tiêu:* \`${clusterKey}\`\n`;
     text += `📦 *Tổng số lượt kiểm tra:* \`${events.length} ca trực\`\n`;
     text += `------------------------------------\n`;

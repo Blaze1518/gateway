@@ -1,4 +1,24 @@
 services:
+  app:
+    image: automation-service:1.0.0
+    container_name: automation-app
+    environment:
+      - PORT=3000
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    networks:
+      - automation-network
+    depends_on:
+      - redis
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1.5G
+        reservations:
+          memory: 512M
+
   redis:
     image: redis:7-alpine
     container_name: redis-master
