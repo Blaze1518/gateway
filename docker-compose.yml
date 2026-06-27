@@ -3,9 +3,10 @@ services:
     image: automation-service:1.0.0
     container_name: automation-app
     environment:
-      - PORT=3000
+      - PORT=3002
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - REDIS_URL=redis://redis:6379
     networks:
       - automation-network
     depends_on:
